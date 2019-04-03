@@ -7,8 +7,7 @@
 按照上面两条语句启动服务器后如需访问video.html，在浏览器地址栏输入http://localhost:8081/video.html
 
 主要思路：
-
-        Canvas中可以使用ctx.drawImage(video, x, y,width,height)来对视频当前帧的图像进行绘制，其中video参数就是HTML5中的video标签。故我们可以通过Canvas的动态效果不断获取video当前画面，渲染到Canvas画布上。并且通过改变video标签的属性，来实现在Canvas中处理视频的一整套效果。可以理解成在Canvas中新建一个播放器，该播放器视频源是video标签创建，播放器的各种方法最终指向对video标签本身属性和方法的改变。而利用Canvas的强大功能，可以进一步进行图像处理、弹幕加载等操作。
+    Canvas中可以使用ctx.drawImage(video, x, y,width,height)来对视频当前帧的图像进行绘制，其中video参数就是HTML5中的video标签。故我们可以通过Canvas的动态效果不断获取video当前画面，渲染到Canvas画布上。并且通过改变video标签的属性，来实现在Canvas中处理视频的一整套效果。可以理解成在Canvas中新建一个播放器，该播放器视频源是video标签创建，播放器的各种方法最终指向对video标签本身属性和方法的改变。而利用Canvas的强大功能，可以进一步进行图像处理、弹幕加载等操作。
 
  Video标签属性和事件：参见https://zhuanlan.zhihu.com/p/59934212
 
