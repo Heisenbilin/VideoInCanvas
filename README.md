@@ -17,10 +17,6 @@ video = document.createElement('Video');
 video.src = './video.ogv';
 video.controls = true;
 
-//将video标签插入dom结点，用于展示原始video。首先应该在body中有一个id为videodiv的div结点。****在实战中不需要插入dom结点（不用添加下面两行语句）就可以使用上面创建的video对象****
-var videodiv=document.getElementById('videodiv');
-videodiv.appendChild(video);
-
 第二步：Canvas中不断绘制video标签内容
 render()
 function render() {
