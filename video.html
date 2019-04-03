@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="./video.css" />
+</head>
+
+<body id="body">
+    <div id='videodiv'></div>
+    <div>
+        <canvas id="canvas" width="500" height="360" style="border:1px solid #c3c3c3;"></canvas>
+    </div>
+    <div id="videoControls"> 
+        <div id="progressWrap">  
+            <div id="playProgress">  
+                <span id="showProgress">0</span> 
+            </div>
+        </div>
+    </div>
+    <br/>
+    <div>
+        <button onclick="scalemini()">缩小</button>
+        <button onclick="scalelarge()">放大</button>
+        <button onclick="playVideo()">播放/暂停</button>
+        <button onclick="hiddenVideo()">显示/隐藏</button>
+        <button onclick="changeStyle()">转换风格</button>
+    </div>
+    <p>
+        添加字幕：
+        <input type="text">
+        <button id="submit">提交</button>
+    </p>
+</body>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src='word.js'></script>
+    <script>
+        //获取Canvas上下文对象
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        width=canvas.width;
+        height=canvas.height;
+        
+        //创建Video标签
+        video = document.createElement('Video');
+        video.src = './video.ogv';
+        video.controls = true;
+
+        //将video标签插入dom结点，在实战中不需要插入dom结点就可以使用
+        var videodiv=document.getElementById('videodiv');
+        videodiv.appendChild(video);
+
+        //创建事件监听
+        Event.listen('data', this.addNewWord.bind(this));
+
+        //绘制视频
+        this.render();
+
+        //添加新增弹幕事件监听
+        $('#submit').click(function() {
+            var data = $('input').val()
+            Event.trigger('data', {
+                value: data,
+            })
+        })
+
+        //新增弹幕
+        function addNewWord(data){
+            var newWord = new Barrage(canvas,ctx, data)
+            wordObj.push(newWord)
+        }
+
+        //缩小视频
+        function scalemini(){
+            ctx.clearRect(0, 0,width,height)
+            width=width/1.5;
+            height=height/1.5;
+        }
+
+        //放大视频
+        function scalelarge(){
+            ctx.clearRect(0, 0,width,height)
+            width=width*1.5;
+            height=height*1.5;
+        }
+
+        //设置风格标志位
+        var changeStyleFlag = 'none';
+        //更改视频风格
+        function changeStyle(){
+            if(changeStyleFlag=='none'){
+                changeStyleFlag='black';
+            }
+            else if(changeStyleFlag=='black'){
+                changeStyleFlag='white';
+            }
+            else{
+                changeStyleFlag='none';
+            }
+        }
+
+        //对video标签进行隐藏
+        function hiddenVideo(){
+            if(video.style.display=="none"){
+                video.style.display="block";
+            }
+            else{
+                video.style.display="none";
+            }
+        }
+
+        //视频渲染
+        function render() {
+            window.requestAnimationFrame(render)
+            
+            if(changeStyleFlag=='black'){
+                //将视频变为黑白
+                ctx.clearRect(0, 0,canvas.width,canvas.height);
+                ctx.drawImage(video, 0, 0,width,height)
+                let imageData = ctx.getImageData(0,0,width,height);
+                let data = imageData.data;
+                for(let i=0;i<data.length;i+=4){
+                    let average = (data[i+0]+data[i+1]+data[i+2])/3;
+                    data[i+0] = average;
+                    data[i+1] = average;
+                    data[i+2] = average;
+                }
+                ctx.putImageData(imageData,0,0)
+                wordObj.forEach(function (item, index) {
+                    item.draw()
+                })
+            }
+
+            else if(changeStyleFlag=='white'){
+                //将视频黄色背景变成白色
+                ctx.clearRect(0, 0,canvas.width,canvas.height);
+                ctx.drawImage(video, 0, 0,width,height)
+                let imageData = ctx.getImageData(0,0,width,height);
+                for(let i=0;i<imageData.data.length/4;i++){
+                    let r = imageData.data[i*4+0];
+                    let g = imageData.data[i*4+1];
+                    let b = imageData.data[i*4+2];
+                    if(g>100&&r>100&&b<43){
+                        imageData.data[i*4+3]=0;    //将视频黄色部分变为白色
+                    }
+                }
+                ctx.putImageData(imageData,0,0)
+                wordObj.forEach(function (item, index) {
+                    item.draw()
+                })
+            }
+            else{
+                ctx.clearRect(0, 0,canvas.width,canvas.height)
+                ctx.drawImage(video, 0, 0,width,height)  //绘制视频
+                wordObj.forEach(function (item, index) {
+                    item.draw()
+                })
+            }
+        }
+
+        //控制视频进度条
+        var videoControls = document.getElementById("videoControls");
+        var progressWrap = document.getElementById("progressWrap");
+        var playProgress = document.getElementById("playProgress");
+        var showProgress = document.getElementById("showProgress");
+        var progressFlag;
+
+        // 创建我们的操作对象，我们的所有操作都在这个对象上。
+        var videoPlayer = {
+            init: function(){
+                videoPlayer.operateControls();
+                bindEvent(video, "loadeddata", videoPlayer.showHideControls);
+            },
+            showHideControls: function(){
+                bindEvent(canvas, "mouseover", showControls);
+                bindEvent(videoControls, "mouseover", showControls);
+                bindEvent(canvas, "mouseout", hideControls);
+                bindEvent(videoControls, "mouseout", hideControls);
+            },
+            operateControls: function(){
+                bindEvent(canvas,"click", playVideo);
+                bindEvent(progressWrap, "mousedown", videoSeek);
+            }
+        }
+
+        videoPlayer.init();
+
+        // 原生的JavaScript事件绑定函数
+        function bindEvent(ele, eventName, func){
+            if(window.addEventListener){
+                ele.addEventListener(eventName, func);
+            }
+            else{
+                ele.attachEvent('on' + eventName, func);
+            }
+        }
+
+        // 显示video的控制面板
+        function showControls(){
+            videoControls.style.opacity = 1;
+        }
+        // 隐藏video的控制面板
+        function hideControls(){
+            // 为了让控制面板一直出现，我把videoControls.style.opacity的值改为1
+            videoControls.style.opacity = 0;
+        }
+
+        // 控制video的播放
+        function playVideo(){
+            if ( video.paused || video.ended ){              
+                if ( video.ended ){ 
+                    video.currentTime = 0;
+                } 
+                video.play();
+                progressFlag = setInterval(getProgress, 60);
+            } 
+            else{ 
+                video.pause();
+                clearInterval(progressFlag);
+            } 
+        }
+
+        // video的播放条
+        function getProgress(){
+            var percent = video.currentTime / video.duration;
+            playProgress.style.width = percent * (progressWrap.offsetWidth) - 2 + "px";
+            showProgress.innerHTML = (percent * 100).toFixed(1) + "%";
+        }
+
+        // 鼠标在播放条上点击时进行捕获并进行处理
+        function videoSeek(e){
+            if(video.paused || video.ended){
+                playVideo();
+                enhanceVideoSeek(e);
+            }
+            else{
+                enhanceVideoSeek(e);
+            }
+        }
+        
+        function enhanceVideoSeek(e){
+            clearInterval(progressFlag);
+            var length = e.pageX - progressWrap.offsetLeft;
+            var percent = length / progressWrap.offsetWidth;
+            playProgress.style.width = percent * (progressWrap.offsetWidth) - 2 + "px";
+            video.currentTime = percent * video.duration;
+            progressFlag = setInterval(getProgress, 60);
+        }
+    </script>
+</html>

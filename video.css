@@ -1,0 +1,19 @@
+#progressWrap{
+    background-color: black;
+    height: 25px;
+    width: 500px;
+    cursor: pointer;
+    border: 2px solid #c3c3c3;
+}
+#playProgress{
+    background-color: white;
+    width: 0px;
+    height: 25px;
+    border-right: 2px solid blue;
+}
+#showProgress{
+    background-color: "";
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 25px;
+}

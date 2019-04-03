@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Base</title>
+</head>
+
+<body id="body">
+    <div id='videodiv'></div>
+    <div align="center">
+        <br/>
+        <canvas id="canvas" width="500" height="300" ></canvas>
+    </div>
+
+</body>
+    <script>
+        //获取Canvas上下文对象
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        //video = document.getElementById("video");
+
+        video = document.createElement('video')
+        video.src = '80stest.mp4'
+        video.autoplay = true
+        render();
+
+        //视频渲染
+        function render(){
+            window.requestAnimationFrame(render)
+            ctx.clearRect(0, 0,canvas.width,canvas.height)
+            ctx.drawImage(video, 0, 0,canvas.width,canvas.height)  //绘制视频
+        }
+      
+    </script>
+</html>
